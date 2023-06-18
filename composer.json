@@ -1,0 +1,21 @@
+{
+    "name": "effectra/sql-query",
+    "description": "The Effectra SQL Query package.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Effectra\\SqlQuery\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Mohammed Taha",
+            "email": "info@mohammedtaha.net"
+        }
+    ],
+    "require": {
+        "php": "^8.0.2"
+    },
+    "minimum-stability": "stable"
+}
