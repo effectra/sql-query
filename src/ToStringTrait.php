@@ -6,34 +6,44 @@ namespace Effectra\SqlQuery;
 
 trait ToStringTrait
 {
-
-    protected $sql_syntax = [
-        'NULL', 'current_timestamp()'
-    ];
-
-    public function columnsList(array $columns, string $preLetter = null): string
+    /**
+     * Convert an array of columns to a string representation.
+     *
+     * @param array       $columns    The array of columns.
+     * @param string|null $preLetter  The prefix letter to prepend to each column.
+     * @return string                 The string representation of columns.
+     */
+    public function columnsList(array $columns, ?string $preLetter = null): string
     {
         if ($preLetter) {
-            for ($i = 0; $i < count($columns); $i++) {
-                $columns[$i] = $preLetter . '.' . $columns[$i];
+            $count = count($columns);
+            for ($index = 0; $index < $count; $index++) {
+                $columns[$index] = $preLetter . '.' . $columns[$index];
             }
         }
-        return join(',', $columns);
+        return implode(',', $columns);
     }
 
-    public function valuesList(array $values)
+    /**
+     * Convert an array of values to a string representation.
+     *
+     * @param array $values  The array of values.
+     * @return string        The string representation of values.
+     */
+    public function valuesList(array $values): string
     {
-        for ($i = 0; $i < count($values); $i++) {
-            if (!in_array($values[$i], $this->sql_syntax)) {
-                if (is_array($values[$i]) || is_object($values[$i])) {
-                    $values[$i] =  "'" . json_encode($values[$i]) . "'";
-                } else if (is_int($values)) {
-                    $values[$i] = $values[$i];
+        $count = count($values);
+        for ($index = 0; $index < $count; $index++) {
+            if (!in_array($values[$index], $this->sql_syntax)) {
+                if (is_array($values[$index])) {
+                    $values[$index] =  "'" . json_encode($values[$index]) . "'";
+                } else if (is_int($values[$index])) {
+                    $values[$index] = $values[$index];
                 } else {
-                    $values[$i] = "'" . $values[$i] . "'";
+                    $values[$index] = "'" . $values[$index] . "'";
                 }
             }
         }
-        return join(',', $values);
+        return implode(',', $values);
     }
 }

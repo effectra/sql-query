@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Effectra\SqlQuery;
 
-use ConditionTrait;
-
 class Select
 {
-
     use ToStringTrait;
     use ConditionsTrait;
 
@@ -18,19 +15,24 @@ class Select
 
     private string $query = '';
     private string $table = '';
-    private string|null $preLetter = null;
+    private ?string $preLetter = null;
 
     private bool $methodSelectCalled = false;
 
-    public function __construct(string $table, $preLetter = null)
+    /**
+     * Select constructor.
+     *
+     * @param string $table The table name.
+     * @param string|null $preLetter The prefix letter.
+     */
+    public function __construct(string $table, ?string $preLetter = null)
     {
         $this->table = $table;
         $this->preLetter = $preLetter;
 
-        if($this->methodSelectCalled === false){
-            return $this->selectAll();
+        if (!$this->methodSelectCalled) {
+            $this->selectAll();
         }
-        
     }
 
     public function getQuery(): string
@@ -40,11 +42,11 @@ class Select
 
     public function getTable(): string
     {
-        $table = $this->preLetter ?  $this->table . ' ' . $this->preLetter :  $this->table;
+        $table = $this->preLetter ? $this->table . ' ' . $this->preLetter : $this->table;
         return $table;
     }
 
-    public function withPreLetter(string $letter = 'p')
+    public function withPreLetter(string $letter = 'p'): self
     {
         $this->preLetter = $letter;
         return $this;
@@ -68,7 +70,7 @@ class Select
         if (is_array($columns)) {
             $columns = $this->columnsList($columns, $this->preLetter);
         }
-        $this->query = self::SELECT . $columns . " FROM " .  $this->getTable();
+        $this->query = self::SELECT . $columns . " FROM " . $this->getTable();
         return $this;
     }
 
@@ -128,9 +130,8 @@ class Select
         return $this;
     }
 
-
     public function __toString(): string
     {
-        return $this->query ?? "";
+        return $this->query ;
     }
 }
