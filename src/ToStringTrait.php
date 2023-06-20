@@ -6,6 +6,9 @@ namespace Effectra\SqlQuery;
 
 trait ToStringTrait
 {
+    protected $sql_syntax = [
+        'NULL', 'current_timestamp()'
+    ];
     /**
      * Convert an array of columns to a string representation.
      *
