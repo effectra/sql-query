@@ -508,7 +508,7 @@ class Table
      */
     public function renameColumn($from, $to)
     {
-        $col = ['tableName' => $from, 'to' => $to, 'act' => 'rename_table'];
+        $col = ['name' => $from, 'to' => $to, 'act' => 'rename_table'];
         $this->cols[] = $col;
         return $this;
     }

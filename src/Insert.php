@@ -115,11 +115,12 @@ class Insert
 
         $this->query .= " (" . implode(", ", $this->columns) . ")";
 
-        if (!empty($this->values)) {
-            $placeholders = array_fill(0, count($this->columns), "?");
-            $this->query .= " VALUES (" . $this->valuesList($placeholders) . ")";
-        }
+        $placeholders = array_fill(0, count($this->columns), "?");
 
+        $values = !empty($this->values) ? $this->values : $placeholders;
+
+        $this->query .= " VALUES (" . $this->valuesList($values) . ")";
+        
         $this->query .= ';';
     }
 
