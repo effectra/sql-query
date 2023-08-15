@@ -26,13 +26,8 @@ $query->select('name', 'email')
     ->orderBy('name')
     ->limit(10);
 
-// Execute the query
-$results = $query->execute();
-
-// Process the results
-foreach ($results as $result) {
-    echo $result['name'] . ' - ' . $result['email'] . PHP_EOL;
-}
+// Print the SQL query
+echo $query;
 ```
 
 ### Table Example
