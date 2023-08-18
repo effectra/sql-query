@@ -571,8 +571,10 @@ class Table
                 $alter = new Alter($this->tableName);
 
                 if (isset($col['modify']) && $col['modify'] === 'drop') {
+                    if (isset($col['act']) && $col['act'] === 'table'){
+                        $query = (string) Query::drop($col['name'])->dropTable() ;
+                    }
                     if (isset($col['act']) && $col['act'] === 'column')  $query .= (string) $alter->dropColumn($col['name']) . ';';
-
                     if (isset($col['act']) && $col['act'] === 'key')  $query .= (string) $alter->dropKey($col['name'], $col['type']) . ';';
                 }
                 if (!isset($col['modify'])) {
