@@ -118,9 +118,12 @@ class Select
         return $this;
     }
 
-    public function limit(int $limit): self
+    public function limit(int $from,?int $to = null): self
     {
-        $this->query .= " LIMIT " . $limit;
+        $this->query .= " LIMIT  $from" ;
+        if($to){
+            $this->query .= ",$to";
+        }
         return $this;
     }
 

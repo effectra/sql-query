@@ -46,6 +46,16 @@ class Query
         return new Update($table);
     }
 
+ /**
+     * Create a transaction query.
+     *
+     * @return Transaction The Transaction instance.
+     */
+    public static function transaction(): Transaction
+    {
+        return new Transaction();
+    }
+
     /**
      * Create a "DELETE" query.
      *
