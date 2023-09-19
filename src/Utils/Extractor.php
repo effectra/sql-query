@@ -2,28 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Effectra\SqlQuery;
+namespace Effectra\SqlQuery\Utils;
 
 class Extractor
 {
-    protected $query;
-
     /**
      * Extractor constructor.
      *
      * @param string $query The SQL query.
      */
-    public function __construct(string $query)
+    public function __construct(protected string $query)
     {
         $this->query = $query;
     }
 
     /**
-     * Get the tables mentioned in the query.
+     * Get the table mentioned in the query.
      *
      * @return string|null The table name.
      */
-    public function getTables(): ?string
+    public function getTable(): ?string
     {
         $pattern = '/\bFROM\s+(\w+)/i';
         preg_match($pattern, $this->query, $matches);
@@ -41,6 +39,10 @@ class Extractor
         $pattern = '/\bSELECT\s+(.*?)\s+FROM/i';
         preg_match($pattern, $this->query, $matches);
 
+        if ($matches[1] === '*') {
+            return [];
+        }
+
         return isset($matches[1]) ? explode(',', $matches[1]) : [];
     }
 
@@ -49,12 +51,19 @@ class Extractor
      *
      * @return int|null The LIMIT value.
      */
-    public function getLimit(): ?int
+    public function getLimit(): ?array
     {
-        $pattern = '/\bLIMIT\s+(\d+)/i';
+        $pattern = '/\bLIMIT\s+(\d+)(?:,\s*(\d+))?/i';
         preg_match($pattern, $this->query, $matches);
 
-        return isset($matches[1]) ? intval($matches[1]) : null;
+        if (isset($matches[1])) {
+            $limit1 = intval($matches[1]);
+            $limit2 = isset($matches[2]) ? intval($matches[2]) : null;
+
+            return [$limit1, $limit2];
+        } else {
+            return null;
+        }
     }
 
     /**

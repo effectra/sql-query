@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace Effectra\SqlQuery;
 
+use Effectra\SqlQuery\Operations\Select;
+use Effectra\SqlQuery\Operations\Insert;
+use Effectra\SqlQuery\Operations\Update;
+use Effectra\SqlQuery\Operations\Alter;
+use Effectra\SqlQuery\Operations\Drop;
+use Effectra\SqlQuery\Operations\CreateTable;
+use Effectra\SqlQuery\Operations\Transaction;
+use Effectra\SqlQuery\Operations\UpdateTable;
+use Effectra\SqlQuery\Structure\Database;
+use Effectra\SqlQuery\Structure\Table;
+
 /**
  * Class Query
  *
@@ -11,24 +22,69 @@ namespace Effectra\SqlQuery;
  */
 class Query
 {
-    public const CURRENT_TIMESTAMP = 'current_timestamp()';
 
     /**
-     * Create a "CREATE DATABASE" query.
-     *
-     * @param string $name The name of the database.
-     * @return string The SQL query.
+     * @var string The currently set database driver.
      */
-    public static function createDatabase(string $name): string
+    protected static string $driver = Driver::MySQL;
+
+    /**
+     * @var string The generated SQL query string.
+     */
+    protected static string $query;
+
+    /**
+     * Set the database driver to be used for generating queries.
+     *
+     * @param string $driver The name of the database driver (e.g., 'mysql', 'postgresql').
+     * @throws \Exception If the specified driver is not available in the package.
+     */
+    public static function driver(string $driver): void
     {
-        return sprintf('CREATE DATABASE %s', $name);
+        if (!in_array($driver, Driver::getAvailableDrivers())) {
+            throw new \Exception("This driver ($driver) not available on this package ");
+        }
+        static::$driver = $driver;
+        Syntax::setDriver($driver);
     }
 
     /**
-     * Create a "SELECT" query.
+     * Get the currently set database driver.
      *
-     * @param string $table The name of the table to select from.
-     * @return Select The Select instance.
+     * @return string The name of the currently set database driver.
+     */
+    public static function getDriver(): string
+    {
+        return static::$driver;
+    }
+
+    /**
+     * Create a new database instance.
+     *
+     * @param string $name The name of the database.
+     * @return Database A Database instance.
+     */
+    public static function database(string $name): Database
+    {
+        return new Database($name);
+    }
+
+    /**
+     * Create a new table instance.
+     *
+     * @param string $name The name of the table.
+     * @return Table A Table instance.
+     */
+    public static function table(string $name): Table
+    {
+        return new Table($name);
+    }
+
+    /**
+     * Create a new SELECT query builder for a table.
+     *
+     * @param string $table The name of the table.
+     * @return Select A Select query builder.
      */
     public static function select(string $table): Select
     {
@@ -36,20 +92,76 @@ class Query
     }
 
     /**
-     * Create an "UPDATE" query.
+     * Create a new INSERT query builder for a table.
      *
-     * @param string $table The name of the table to update.
-     * @return Update The Update instance.
+     * @param string $table The name of the table.
+     * @param int $insert_type The type of INSERT statement (default is INSERT_VALUES).
+     * @return Insert An Insert query builder.
+     */
+    public static function insert(string $table, int $insert_type = Insert::INSERT_VALUES): Insert
+    {
+        return new Insert($table, $insert_type);
+    }
+
+    /**
+     * Create a new DROP query builder.
+     *
+     * @return Drop A Drop query builder.
+     */
+    public static function drop(): Drop
+    {
+        return new Drop();
+    }
+
+    /**
+     * Create a new UPDATE query builder for a table.
+     *
+     * @param string $table The name of the table.
+     * @return Update An Update query builder.
      */
     public static function update(string $table): Update
     {
         return new Update($table);
     }
 
- /**
-     * Create a transaction query.
+    /**
+     * Create a new ALTER query builder.
      *
-     * @return Transaction The Transaction instance.
+     * @return Alter An Alter query builder.
+     */
+    public static function alter(): Alter
+    {
+        return new Alter();
+    }
+
+    /**
+     * Create a new CREATE TABLE query builder.
+     *
+     * @param string $table_name The name of the table to create.
+     * @param callable $table A callback function to define table columns and constraints.
+     * @return CreateTable A CreateTable query builder.
+     */
+    public static function createTable(string $table_name, callable $table): CreateTable
+    {
+        return new CreateTable($table_name, $table);
+    }
+
+    /**
+     * Create a new UPDATE TABLE query builder.
+     *
+     * @param string $table_name The name of the table to update.
+     * @param callable $table A callback function to define table column modifications.
+     * @return UpdateTable An UpdateTable query builder.
+     */
+    public static function updateTable(string $table_name, callable $table): UpdateTable
+    {
+        return new UpdateTable($table_name, $table);
+    }
+
+    /**
+     * Create a new transaction instance.
+     *
+     * @return Transaction A Transaction instance.
      */
     public static function transaction(): Transaction
     {
@@ -57,116 +169,14 @@ class Query
     }
 
     /**
-     * Create a "DELETE" query.
+     * Check if a column exists in a table within the database.
      *
-     * @param string $table The name of the table to delete from.
-     * @return Delete The Delete instance.
+     * @param string $table_name The name of the table to check.
+     * @param string $column_name The name of the column to check.
+     * @return Select A Select object configured to check for the existence of the specified column.
      */
-    public static function delete(string $table): Delete
+    public function checkIfTheColumnExistsInTheTable($table_name, $column_name): Select
     {
-        return new Delete($table);
-    }
-
-    /**
-     * Create an "INSERT" query.
-     *
-     * @param string $table The name of the table to insert into.
-     * @return Insert The Insert instance.
-     */
-    public static function insert(string $table): Insert
-    {
-        return new Insert($table);
-    }
-
-    /**
-     * Create a "DROP" query.
-     *
-     * @param string $table The name of the table to drop.
-     * @param string|null $action The drop action (e.g., "CASCADE", "RESTRICT").
-     * @return Drop The Drop instance.
-     */
-    public static function drop(string $table, ?string $action = null): Drop
-    {
-        return new Drop($table, $action);
-    }
-
-    /**
-     * Create an "ALTER" query.
-     *
-     * @param string $table The name of the table to alter.
-     * @return Alter The Alter instance.
-     */
-    public static function alter(string $table): Alter
-    {
-        return new Alter($table);
-    }
-
-    /**
-     * Create a column definition for a table.
-     *
-     * @param array $cols The columns .
-     * @return Column The Column instance.
-     */
-    public static function column(array $cols): Column
-    {
-        return new Column($cols);
-    }
-
-    /**
-     * Create a table instance.
-     *
-     * @param string $table The name of the table.
-     * @return Table The Table instance.
-     */
-    public static function table(string $table): Table
-    {
-        return new Table($table);
-    }
-
-    /**
-     * Create a "CREATE TABLE" query.
-     *
-     * @param string $table The name of the table.
-     * @param array $columns The columns of the table.
-     * @param array $keys The keys of the table.
-     * @return CreateTable The CreateTable instance.
-     */
-    public static function createTable(string $table, array $columns, array $keys = []): CreateTable
-    {
-        return new CreateTable($table, $columns, $keys);
-    }
-
-    /**
-     * Create a key instance.
-     *
-     * @param string $table The name of the table.
-     * @param string $column The name of the column.
-     * @return Key The Key instance.
-     */
-    public static function key(string $table, string $column): Key
-    {
-        return new Key($table, $column);
-    }
-
-    /**
-     * Create an extractor instance to parse a query.
-     *
-     * @param string $query The SQL query to extract information from.
-     * @return Extractor The Extractor instance.
-     */
-    public static function extract(string $query): Extractor
-    {
-        return new Extractor($query);
-    }
-
-    /**
-     * Generate a "DESCRIBE" query.
-     *
-     * @param string $name The name of the table or database.
-     * @return string The SQL query.
-     */
-    public static function describe(string $name): string
-    {
-        return sprintf('DESCRIBE %s', $name);
+        return (new Select($table_name))->columns(['COLUMN_NAME'])->from('INFORMATION_SCHEMA.COLUMNS')->whereTable($table_name)->whereColumn($column_name);
     }
 }
