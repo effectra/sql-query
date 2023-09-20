@@ -10,7 +10,9 @@ use Effectra\SqlQuery\Operations\Update;
 use Effectra\SqlQuery\Operations\Alter;
 use Effectra\SqlQuery\Operations\Drop;
 use Effectra\SqlQuery\Operations\CreateTable;
+use Effectra\SqlQuery\Operations\Delete;
 use Effectra\SqlQuery\Operations\Transaction;
+use Effectra\SqlQuery\Operations\Truncate;
 use Effectra\SqlQuery\Operations\UpdateTable;
 use Effectra\SqlQuery\Structure\Database;
 use Effectra\SqlQuery\Structure\Table;
@@ -89,6 +91,28 @@ class Query
     public static function select(string $table): Select
     {
         return new Select($table);
+    }
+
+    /**
+     * Create a new DELETE query builder for a table.
+     *
+     * @param string $table The name of the table.
+     * @return Delete A Delete query builder.
+     */
+    public static function delete(string $table): Delete
+    {
+        return new Delete($table);
+    }
+
+    /**
+     * Create a new TRUNCATE query builder for a table.
+     *
+     * @param string $table The name of the table.
+     * @return Truncate A Truncate query builder.
+     */
+    public static function truncate(string $table): Truncate
+    {
+        return new Truncate($table);
     }
 
     /**

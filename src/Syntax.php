@@ -102,6 +102,7 @@ class Syntax
             'select' => 'SELECT',
             'update' => 'UPDATE',
             'delete' => 'DELETE',
+            'truncate' => 'TRUNCATE',
             'insert' => 'INSERT',
             'into' => 'INTO',
             'alter' => 'ALTER',

@@ -45,6 +45,8 @@ class RunBuilder extends Attribute
             //Operations
             'select' => new SelectQueryBuilder($this->attributes, $syntax),
             'insert' => new InsertQueryBuilder($this->attributes, $syntax),
+            'delete' => new DeleteQueryBuilder($this->attributes, $syntax),
+            'truncate' => new TruncateQueryBuilder($this->attributes, $syntax),
             'update' => new UpdateQueryBuilder($this->attributes, $syntax),
             'drop' => new DropQueryBuilder($this->attributes, $syntax),
             'alter' => new AlterQueryBuilder($this->attributes, $syntax),

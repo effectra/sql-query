@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Effectra\SqlQuery\Operations;
 
+
+/**
+ * Trait SetDataTrait
+ *
+ * This trait provides methods for managing data to be inserted or updated in SQL queries.
+ *
+ */
 trait SetDataTrait
 {
 
@@ -94,17 +101,30 @@ trait SetDataTrait
         return $this;
     }
 
+    /**
+     * Set the values to default for insertion.
+     *
+     * @return self
+     */
     public function defaultValues(): self
     {
         $this->setAttribute('values', 'default');
         return $this;
     }
 
+    /**
+     * Set the insert values mode to safe mode.
+     */
     public function insertValuesModeSafe()
     {
         $this->setAttribute('insert_data_mode', Insert::INSERT_VALUES_MODE_SAFE);
     }
 
+     /**
+     * Get the parameters for the SQL query.
+     *
+     * @return array An associative array of parameter names and values.
+     */
     public function getParams(): array
     {
         return array_combine(

@@ -13,7 +13,6 @@ use Effectra\SqlQuery\Syntax;
  *
  * Represents a query builder for generating SQL ALTER statements.
  *
- * @package Effectra\SqlQuery\Build
  */
 class AlterQueryBuilder extends Attribute
 {

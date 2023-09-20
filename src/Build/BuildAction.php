@@ -12,6 +12,8 @@ class BuildAction
 {
     public const DATABASE = 'db';
     public const SELECT = 'select';
+    public const DELETE = 'delete';
+    public const TRUNCATE = 'truncate';
     public const INSERT = 'insert';
     public const UPDATE = 'update';
     public const ALTER = 'alter';
