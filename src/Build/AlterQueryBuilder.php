@@ -149,7 +149,7 @@ class AlterQueryBuilder extends Attribute
         return '';
     }
 
-      /**
+    /**
      * Build the SQL ALTER query.
      *
      * @return string The generated SQL query.

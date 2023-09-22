@@ -79,7 +79,7 @@ class InsertQueryBuilder extends Attribute
         if (!$this->hasAttribute('columns')) {
             return '';
         }
-        $cols = join(', ', $this->attributes['columns']);
+        $cols = join(', ', $this->getAttribute('columns'));
         return "($cols)";
     }
 

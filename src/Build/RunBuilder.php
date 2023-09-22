@@ -50,6 +50,7 @@ class RunBuilder extends Attribute
             'update' => new UpdateQueryBuilder($this->attributes, $syntax),
             'drop' => new DropQueryBuilder($this->attributes, $syntax),
             'alter' => new AlterQueryBuilder($this->attributes, $syntax),
+            'info' => new InfoQueryBuilder($this->attributes, $syntax),
             'transaction' => new TransactionQueryBuilder($this->attributes, $syntax),
         };
 

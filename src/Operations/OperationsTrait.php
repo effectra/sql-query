@@ -14,7 +14,7 @@ trait OperationsTrait
      */
     public function addQuery(string $query)
     {
-        $this->setAttribute('query',$query);
+        $this->setAttribute('query', $query);
     }
 
     /**
@@ -33,7 +33,7 @@ trait OperationsTrait
             $this->setAttribute('where', []);
         }
 
-        if(is_object($columns)){
+        if (is_object($columns)) {
             $columns = (array) $columns;
         }
 
@@ -73,7 +73,7 @@ trait OperationsTrait
             }
         }
 
-        if(is_string($columns)){
+        if (is_string($columns)) {
             $this->setAttribute('where', $columns);
         }
 
@@ -240,14 +240,14 @@ trait OperationsTrait
      * Add a WHERE clause to filter columns with values within a specified range.
      *
      * @param string $column The column to filter on.
-     * @param int|float $from The lower bound of the range.
-     * @param int|float $to The upper bound of the range.
+     * @param string|int|float $from The lower bound of the range.
+     * @param string|int|float $to The upper bound of the range.
      *
      * @return self
      *
      * @throws \Exception If $to is less than $from.
      */
-    public function inBetween(string $column, int|float $from, int|float $to): self
+    public function inBetween(string $column, string|int|float $from, string|int|float $to): self
     {
         if ($to < $from) {
             throw new \Exception('The $to value must be greater than the $from value.');
@@ -264,16 +264,16 @@ trait OperationsTrait
      * Add a WHERE clause to filter columns with values within a specified range.
      *
      * @param string $column The column to filter on.
-     * @param int|float $from The lower bound of the range.
-     * @param int|float $to The upper bound of the range.
+     * @param string|int|float $from The lower bound of the range.
+     * @param string|int|float $to The upper bound of the range.
      *
      * @return self
      *
      * @throws \Exception If $to is less than $from.
      */
-    public function whereInBetween(string $column, int|float $from, int|float $to): self
+    public function whereInBetween(string $column, string|int|float $from, string|int|float $to): self
     {
-        return $this->inBetween($column,$from,$to);
+        return $this->inBetween($column, $from, $to);
     }
 
     /**
@@ -283,9 +283,9 @@ trait OperationsTrait
      *
      * @return self
      */
-    public function whereColumn(string $column) 
+    public function whereColumn(string $column)
     {
-        $this->setAttribute('where_column',$column);
+        $this->setAttribute('where_column', $column);
         return $this;
     }
 
@@ -296,9 +296,9 @@ trait OperationsTrait
      *
      * @return self
      */
-    public function whereTable(string $table) 
+    public function whereTable(string $table)
     {
-        $this->setAttribute('where_table',$table);
+        $this->setAttribute('where_table', $table);
         return $this;
     }
 }

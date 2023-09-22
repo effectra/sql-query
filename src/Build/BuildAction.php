@@ -22,4 +22,5 @@ class BuildAction
     public const TABLE = 'table';
     public const TRANSACTION = 'transaction';
     public const TABLE_UPDATE = 'update_table';
+    public const INFO = 'info';
 }

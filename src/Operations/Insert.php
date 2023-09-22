@@ -47,6 +47,12 @@ class Insert extends Attribute
      */
     public function getQuery(): string
     {
+        if(empty($this->getAttribute('columns') )){
+            throw new \Exception("Error Processing Query, no data inserted");
+        }
+        if(empty($this->getAttribute('values') )){
+            $this->setAttribute('values',array_map(fn($col) => "?" ,$this->getAttribute('columns')));
+        }
         return (string) new RunBuilder($this->getAttributes(), BuildAction::INSERT);
     }
 

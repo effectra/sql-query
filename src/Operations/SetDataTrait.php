@@ -118,6 +118,7 @@ trait SetDataTrait
     public function insertValuesModeSafe()
     {
         $this->setAttribute('insert_data_mode', Insert::INSERT_VALUES_MODE_SAFE);
+        return $this;
     }
 
      /**

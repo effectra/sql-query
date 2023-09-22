@@ -265,8 +265,9 @@ class ColumnQueryBuilder extends Attribute
             }
         }
 
-        $check_sort =  $this->getAttribute('check_sort');
+        $check_sort =  $this->getAttribute('check_sort') ?? [];
         array_shift($check_sort);
+
         $sortedSyntax = array_map(fn ($op) => $this->syntax->getCommand($op, 1),$check_sort);
     
         foreach ($exprs_result as $key => $condition) {

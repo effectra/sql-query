@@ -11,6 +11,7 @@ use Effectra\SqlQuery\Operations\Alter;
 use Effectra\SqlQuery\Operations\Drop;
 use Effectra\SqlQuery\Operations\CreateTable;
 use Effectra\SqlQuery\Operations\Delete;
+use Effectra\SqlQuery\Operations\Info;
 use Effectra\SqlQuery\Operations\Transaction;
 use Effectra\SqlQuery\Operations\Truncate;
 use Effectra\SqlQuery\Operations\UpdateTable;
@@ -192,15 +193,13 @@ class Query
         return new Transaction();
     }
 
-    /**
-     * Check if a column exists in a table within the database.
+     /**
+     * Create a new info instance.
      *
-     * @param string $table_name The name of the table to check.
-     * @param string $column_name The name of the column to check.
-     * @return Select A Select object configured to check for the existence of the specified column.
+     * @return Transaction An Info instance.
      */
-    public function checkIfTheColumnExistsInTheTable($table_name, $column_name): Select
+    public static function info(): Info
     {
-        return (new Select($table_name))->columns(['COLUMN_NAME'])->from('INFORMATION_SCHEMA.COLUMNS')->whereTable($table_name)->whereColumn($column_name);
+        return new Info();
     }
 }
