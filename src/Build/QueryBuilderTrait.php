@@ -74,6 +74,22 @@ trait QueryBuilderTrait
                     $converted[] = $this->whereEqual($attribute);
                 }
 
+                if (isset($attribute['greater_than'])) {
+                    $converted[] = $this->whereGreaterThan($attribute);
+                }
+
+                if (isset($attribute['greater_than_or_equal'])) {
+                    $converted[] = $this->whereGreaterThanOrEqual($attribute);
+                }
+
+                if (isset($attribute['less_than'])) {
+                    $converted[] = $this->whereLessThan($attribute);
+                }
+
+                if (isset($attribute['less_than_or_equal'])) {
+                    $converted[] = $this->whereLessThanOrEqual($attribute);
+                }
+
                 if (isset($attribute['not_equal'])) {
                     $converted[] = $this->whereNotEqual($attribute);
                 }
@@ -93,10 +109,14 @@ trait QueryBuilderTrait
                 if (isset($attribute['from'])) {
                     $converted[] = $this->whereLike($attribute);
                 }
+
+                if (isset($attribute['not'])) {
+                    $converted[] = $this->whereNot($attribute);
+                }
             }
 
             $sortedSyntax = array_map(fn ($op) => $this->syntax->getCommand($op, 1), $this->getWhereSortedConditions());
- 
+
             foreach ($converted as $key => $condition) {
                 if ($key > 0 && $condition !== null) {
                     $result .=  $sortedSyntax[$key - 1] ?? $this->syntax->getCommand('and', 1);
@@ -105,11 +125,9 @@ trait QueryBuilderTrait
             }
         }
 
-        if (is_string($this->getAttribute('where'))) 
-            {
-                $result = $this->getAttribute('where');
-            }
-
+        if (is_string($this->getAttribute('where'))) {
+            $result = $this->getAttribute('where');
+        }
 
 
         return $this->syntax->getCommand('where', 3) . $result;
@@ -150,10 +168,9 @@ trait QueryBuilderTrait
         return $this->whereWithOperator($attribute, 'less_than_or_equal');
     }
 
-    public function whereNot($attribute, $operator = 'equal'): string
+    public function whereNot($attribute): string
     {
-        $stmt = $this->whereEqual($attribute);
-        return $this->syntax->getCommand('not', 3) . $stmt;
+        return $attribute['col'] . $this->syntax->getCommand('not', 1) . $attribute['not'];
     }
 
     public function whereIsNotNull($attribute): string

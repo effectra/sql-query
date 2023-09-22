@@ -175,32 +175,15 @@ class TableQueryBuilder extends Attribute
     }
 
     /**
-     * Get information about the table (e.g., column names and data types).
-     *
-     * @return string The SQL query to retrieve table information.
-     */
-    public function info(): string
-    {
-        $driver = $this->syntax->getDriver();
-        if ($driver === Driver::MySQL) {
-            return $this->syntax->getCommand('describe', 1) . $this->getAttribute('table_name');
-        }
-        if ($driver === Driver::PostgreSQL) {
-            return (string) (new Select('table_name'))->columns(['table_schema'])->from('information_schema.tables')->where(['table_schema' => 'public']);
-        }
-        if ($driver === Driver::SQLite) {
-            return $this->syntax->getCommand('pragma', 1) . "table_info({$this->getAttribute('table_name')}) ";
-        }
-        throw new \Exception("Error Processing Query,driver not exists", 1);
-    }
-
-    /**
      * Get the engine (storage engine) specification for the table.
      *
      * @return string The SQL specification for the table engine.
      */
     public function engine(): string
     {
+        if($this->syntax->getDriver() === Driver::SQLite){
+            return '';
+        }
         return $this->hasAttribute('engine') ? 'ENGINE=' . $this->getAttribute('engine') : '';
     }
 
@@ -211,6 +194,9 @@ class TableQueryBuilder extends Attribute
      */
     public function charset(): string
     {
+        if($this->syntax->getDriver() === Driver::SQLite){
+            return '';
+        }
         return $this->hasAttribute('charset') ? 'DEFAULT CHARSET=' . $this->getAttribute('charset') : '';
     }
 
@@ -249,16 +235,6 @@ class TableQueryBuilder extends Attribute
      *
      * @return string The generated SQL query.
      */
-    public function buildInfoTable(): string
-    {
-        return $this->info();
-    }
-
-    /**
-     * Build the final SQL query based on the operation and attributes.
-     *
-     * @return string The generated SQL query.
-     */
     public function build(): string
     {
         if ($this->getOperation() === 'create_table') {
@@ -267,9 +243,7 @@ class TableQueryBuilder extends Attribute
         if ($this->getOperation() === 'update_table') {
             return $this->buildModifyTable();
         }
-        if ($this->getOperation() === 'info_table') {
-            return $this->buildInfoTable();
-        }
+        
         throw new \Exception("Error Processing query attribute operation");
     }
 
