@@ -196,7 +196,7 @@ class Query
      /**
      * Create a new info instance.
      *
-     * @return Transaction An Info instance.
+     * @return Info An Info instance.
      */
     public static function info(): Info
     {
