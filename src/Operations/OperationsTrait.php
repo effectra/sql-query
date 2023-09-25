@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Effectra\SqlQuery\Operations;
 
+use Effectra\SqlQuery\Condition;
 
 trait OperationsTrait
 {
@@ -15,6 +16,15 @@ trait OperationsTrait
     public function addQuery(string $query)
     {
         $this->setAttribute('query', $query);
+    }
+
+    public function whereConditions(Condition $conditions):self
+    {
+        $condition = $conditions->getAttributes() ;
+        foreach ($condition['where'] as $attr) {
+           $this->addToAttribute('where',$attr);
+        }
+        return $this;
     }
 
     /**
