@@ -23,7 +23,7 @@ trait TableNumericTrait {
     public function autoIncrement($column_name = 'id'): self
     {
         $col = new Column($column_name);
-        $col->bigInt()->autoIncrement();
+        $col->bigInt()->primaryKey()->autoIncrement();
         $this->addToAttribute('cols', $col->getAttributes());
         return $this;
     }
