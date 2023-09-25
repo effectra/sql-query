@@ -260,8 +260,11 @@ trait TableStringTrait
      *
      * @param string $column_name The name of the column.
      */
-    public function enumStatus($column_name = 'status')
+    public function enumStatus($column_name = 'status', $default = 'pending')
     {
-        $this->enum($column_name, ['pending', 'approved', 'declined', 'removed']);
+        $col = new Column($column_name);
+        $col->enum(['pending', 'approved', 'declined', 'removed'])->default($default);
+        $this->addToAttribute('cols', $col->getAttributes());
+        return $this;
     }
 }
