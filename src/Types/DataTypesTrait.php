@@ -162,6 +162,7 @@ trait DataTypesTrait
     {
         $this->setAttribute('data_type', 'json');
         $this->addToAttribute('check','json');
+        $this->addToAttribute('check_sort','and');
         return $this;
     }
     public function uuid(): self
