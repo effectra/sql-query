@@ -278,6 +278,17 @@ class ValueBuilder
         return '0x' . base_convert($binaryValue, 2, 16);
     }
 
+    public function buildString($value)
+    {
+        if(strpos($value ,':')){
+            return $value;
+        }
+        if(in_array($value,  array_values((new Syntax())->dateFunctions()))){
+            return "'" . $value . "'";
+        }
+        return  $value ;
+    }
+
     /**
      * Build an array of formatted values for SQL usage.
      *
@@ -289,7 +300,7 @@ class ValueBuilder
         foreach ($this->defineType() as $value) {
             $formattedValues[] = match ($value['type']) {
                 //handle string or SQL Date Functions
-                'string' => in_array($value['value'],  array_values((new Syntax())->dateFunctions())) ? $value['value'] : "'" . $value['value'] . "'",
+                'string' => $this->buildString($value['value']),
                 //handle array as json
                 'array' => "'" . json_encode($value['value']) . "'",
                 //handle object as json
