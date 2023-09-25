@@ -146,7 +146,7 @@ class TableQueryBuilder extends Attribute
             }
         }
 
-        return empty($cols) ? '' : sprintf('%s (%s)', $this->syntax->getCommand('check', 1), join($this->syntax->getCommand('and', 1), $cols));
+        return empty($cols) ? '' : sprintf(',%s (%s)', $this->syntax->getCommand('check', 1), join($this->syntax->getCommand('and', 1), $cols));
     }
 
     /**
@@ -249,7 +249,7 @@ class TableQueryBuilder extends Attribute
     public function buildCreateTable(): string
     {
         $query = sprintf(
-            "%s %s ( %s ) %s %s %s",
+            "%s %s ( %s %s )  %s %s",
             $this->start(),
             $this->tableName(),
             $this->columnQueryBuilder(),
