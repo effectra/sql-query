@@ -30,9 +30,11 @@ class Database extends Attribute
     /**
      * Set the operation to create the database.
      */
-    public function create()
+    public function create($options = [])
     {
         $this->setAttribute('operation', 'create');
+        $this->setAttribute('options',$options);
+        return $this;
     }
 
     /**
@@ -41,6 +43,7 @@ class Database extends Attribute
     public function drop()
     {
         $this->setAttribute('operation', 'drop');
+        return $this;
     }
 
     /**
@@ -52,6 +55,7 @@ class Database extends Attribute
     {
         $this->setAttribute('operation', 'rename');
         $this->setAttribute('rename', $new_name);
+        return $this;
     }
 
     /**
@@ -60,6 +64,7 @@ class Database extends Attribute
     public function getTables()
     {
         $this->setAttribute('operation', 'get_tables');
+        return $this;
     }
 
     /**

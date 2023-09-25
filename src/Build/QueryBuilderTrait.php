@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Effectra\SqlQuery\Build;
 
+use Effectra\SqlQuery\Driver;
 use Effectra\SqlQuery\Operations\Insert;
 
 /**
@@ -241,5 +242,68 @@ trait QueryBuilderTrait
         }
 
         return false;
+    }
+
+    /**
+     * Generate a string for checking conditions in a SQL query.
+     *
+     * @param string $column      The name of the column to check.
+     * @param array  $expressions An array of conditions to check.
+     * @param array  $checkSort   An array specifying the order of logical operators (optional).
+     *
+     * @return string The generated SQL check conditions string.
+     *
+     * @throws \Exception If an empty expression is encountered.
+     */
+    public function checkQuery(string $column, array $expressions, array $checkSort = []): string
+    {
+        // If SQLite, return an empty string since SQLite doesn't support check conditions.
+        if ($this->syntax->getDriver() === Driver::SQLite) {
+            return '';
+        }
+
+        // If no expressions provided, return an empty string.
+        if (empty($expressions)) {
+            return '';
+        }
+
+        $result = '';
+        $expressionsResult = [];
+
+        foreach ($expressions as $expression) {
+            // Ensure expression is not empty.
+            if (empty($expression)) {
+                throw new \Exception("Error Processing Query, check expression is empty");
+            }
+
+            // If the expression is 'json', convert it to 'json_valid(column)'.
+            if ($expression === 'json') {
+                $expression = "json_valid($column)";
+            }
+
+            $expressionsResult[] = $expression;
+        }
+
+        // Set a default value for $checkSort if not provided.
+        if (empty($checkSort)) {
+            $checkSort = ['and']; // Default to 'AND' operator.
+        }
+
+        // Remove the first element of $checkSort if it's empty.
+        if (!empty($checkSort)) {
+            array_shift($checkSort);
+        }
+
+        // Generate sorted syntax based on the logical operators in $checkSort.
+        $sortedSyntax = array_map(fn ($operator) => $this->syntax->getCommand($operator, 1), $checkSort);
+
+        foreach ($expressionsResult as $key => $condition) {
+            if ($key > 0 && $condition !== null) {
+                $result .= $sortedSyntax[$key - 1] ?? $this->syntax->getCommand('and', 1);
+            }
+            $result .= $condition;
+        }
+
+        return $result;
     }
 }

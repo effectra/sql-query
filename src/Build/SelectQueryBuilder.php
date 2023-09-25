@@ -43,7 +43,7 @@ class SelectQueryBuilder extends Attribute
      */
     public function columnsSelected():string|array
     {
-        $cols = $this->attributes['column_selected'];
+        $cols = $this->getAttribute('column_selected');
         if($cols === '*'){
             return '*';
         }
@@ -63,7 +63,7 @@ class SelectQueryBuilder extends Attribute
      */
     public function fromTable():string
     {
-        return $this->syntax->getCommand('from', 3) . $this->attributes['table_name'];
+        return $this->syntax->getCommand('from', 3) . $this->getAttribute('table_name');
     }
 
      /**
@@ -73,10 +73,10 @@ class SelectQueryBuilder extends Attribute
      */
     public function groupBy():string
     {
-        if (!isset($this->attributes['group_by'])) {
+        if (!$this->hasAttribute('group_by')) {
             return '';
         }
-        return $this->syntax->getCommand('groupBy', 3) . join(', ', $this->attributes['group_by']);
+        return $this->syntax->getCommand('groupBy', 3) . join(', ',$this->getAttribute('group_by') );
     }
 
     /**
@@ -86,12 +86,12 @@ class SelectQueryBuilder extends Attribute
      */
     public function orderBy():string
     {
-        if (!isset($this->attributes['order_by'])) {
+        if (!$this->hasAttribute('order_by')) {
             return '';
         }
         return $this->syntax->getCommand('orderBy', 3) .
-            join(', ', $this->attributes['order_by']['cols']) .
-            $this->syntax->getCommand($this->attributes['order_by']['direction'], 2);
+            join(', ', $this->getAttribute('order_by')['cols']) .
+            $this->syntax->getCommand($this->getAttribute('order_by')['direction'], 2);
     }
 
     /**
@@ -104,10 +104,10 @@ class SelectQueryBuilder extends Attribute
         if (!$this->hasAttribute('limit')) {
             return '';
         }
-        $count_until = $this->attributes['limit']['count_until'] ?? null;
+        $count_until = $this->getAttribute('limit')['count_until'] ?? null;
         $count = $count_until ? ', ' . $count_until : $count_until;
         return $this->syntax->getCommand('limit', 3)
-            . $this->attributes['limit']['start_from']
+            . $this->getAttribute('limit')['start_from']
             . $count;
     }
 

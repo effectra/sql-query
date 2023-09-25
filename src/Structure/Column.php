@@ -118,7 +118,7 @@ class Column extends Attribute
      */
     public function unique(): self
     {
-        return $this->constraints('unique');
+        return $this->constraints('unique_key');
     }
 
     /**
@@ -138,7 +138,7 @@ class Column extends Attribute
      */
     public function primaryKey(): self
     {
-        return $this->constraints(['key' => 'primary_key']);
+        return $this->constraints('primary_key');
     }
 
     /**

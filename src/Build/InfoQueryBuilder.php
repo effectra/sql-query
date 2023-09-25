@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Effectra\SqlQuery\Build;
 
 use Effectra\SqlQuery\Attribute;
+use Effectra\SqlQuery\Driver;
 use Effectra\SqlQuery\Operations\Select;
 use Effectra\SqlQuery\Syntax;
 
@@ -32,11 +33,13 @@ class InfoQueryBuilder extends Attribute
      */
     public function dbName(): string
     {
-        return (string) match ($this->syntax->getDriver()) {
-            'mysql' =>  $this->syntax->getCommand('select', 1) . $this->syntax->getCommand('database') . "()",
-            'postgresql' => $this->syntax->getCommand('select', 1) . 'current_database()',
-            'sqlite' => $this->syntax->getCommand('pragma', 1) . 'database_list',
+      return (string) match ($this->syntax->getDriver()) {
+            Driver::MySQL =>  $this->syntax->getCommand('select', 1) . $this->syntax->getCommand('database') . "()",
+            Driver::PostgreSQL => $this->syntax->getCommand('select', 1) . 'current_database()',
+            Driver::SQLite => $this->syntax->getCommand('pragma', 1) . 'database_list',
         };
+
+        
     }
 
     /**
@@ -46,11 +49,16 @@ class InfoQueryBuilder extends Attribute
      */
     public function listDatabase(): string
     {
-        return (string) match ($this->syntax->getDriver()) {
-            'mysql' => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('databases'),
-            'postgresql' => (new Select('pg_database'))->columns(['datname']),
-            'sqlite' => '',
+        $query = (string) match ($this->syntax->getDriver()) {
+            Driver::MySQL => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('databases'),
+            Driver::PostgreSQL => (new Select('pg_database'))->columns(['datname']),
+            Driver::SQLite => '',
         };
+
+        if(empty($query)){
+            throw new \Exception("Error Processing Query, driver '{$this->syntax->getDriver()}' doesn't has statement for list database tables");
+        }
+        return $query;
     }
 
     /**
@@ -61,9 +69,9 @@ class InfoQueryBuilder extends Attribute
     public function listTables(): string
     {
         return (string) match ($this->syntax->getDriver()) {
-            'mysql' => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('tables'),
-            'postgresql' => (new Select('information_schema.tables'))->columns(['table_name'])->where(['table_schema' => 'public', 'table_type' => 'BASE TABLE']),
-            'sqlite' => (new Select('sqlite_master'))->columns(['name'])->where(['type' => 'table']),
+            Driver::MySQL => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('tables'),
+            Driver::PostgreSQL => (new Select('information_schema.tables'))->columns(['table_name'])->where(['table_schema' => 'public', 'table_type' => 'BASE TABLE']),
+            Driver::SQLite => (new Select('sqlite_master'))->columns(['name'])->where(['type' => 'table']),
         };
     }
 
@@ -75,9 +83,9 @@ class InfoQueryBuilder extends Attribute
     public function listCols(): string
     {
         return (string) match ($this->syntax->getDriver()) {
-            'mysql' => $this->syntax->getCommand('describe', 1) . $this->getAttribute('table_name'),
-            'postgresql' => (new Select('information_schema.columns'))->columns(['column_name'])->where(['table_name' => $this->getAttribute('table_name')]),
-            'sqlite' => sprintf(
+            Driver::MySQL => $this->syntax->getCommand('describe', 1) . $this->getAttribute('table_name'),
+            Driver::PostgreSQL => (new Select('information_schema.columns'))->columns(['column_name'])->where(['table_name' => $this->getAttribute('table_name')]),
+            Driver::SQLite => sprintf(
                 '%s %s(%s)',
                 $this->syntax->getCommand('pragma', 1),
                 'table_info',
@@ -94,9 +102,9 @@ class InfoQueryBuilder extends Attribute
     public function tableSchema(): string
     {
         return (string) match ($this->syntax->getDriver()) {
-            'mysql' => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('create', 2) . $this->syntax->getCommand('table', 2) . $this->getAttribute('table_name'),
-            'postgresql' => (new Select('information_schema.columns'))->columns(['column_name', 'data_type', 'character_maximum_length'])->where(['table_name' => $this->getAttribute('table_name')]),
-            'sqlite' => (new Select('sqlite_master'))->columns(['sql'])->where(['type' => 'table', 'name' => $this->getAttribute('table_name')]),
+            Driver::MySQL => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('create', 2) . $this->syntax->getCommand('table', 2) . $this->getAttribute('table_name'),
+            Driver::PostgreSQL => (new Select('information_schema.columns'))->columns(['column_name', 'data_type', 'character_maximum_length'])->where(['table_name' => $this->getAttribute('table_name')]),
+            Driver::SQLite => (new Select('sqlite_master'))->columns(['sql'])->where(['type' => 'table', 'name' => $this->getAttribute('table_name')]),
         };
     }
 
@@ -108,9 +116,9 @@ class InfoQueryBuilder extends Attribute
     public function tableIndexes(): string
     {
         return (string) match ($this->syntax->getDriver()) {
-            'mysql' => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('index') . $this->syntax->getCommand('from') . $this->getAttribute('table_name'),
-            'postgresql' => (new Select('pg_indexes'))->columns(['indexname'])->where(['table_name' => $this->getAttribute('table_name')]),
-            'sqlite' => sprintf(
+            Driver::MySQL => $this->syntax->getCommand('show', 1) . $this->syntax->getCommand('index') . $this->syntax->getCommand('from') . $this->getAttribute('table_name'),
+            Driver::PostgreSQL => (new Select('pg_indexes'))->columns(['indexname'])->where(['table_name' => $this->getAttribute('table_name')]),
+            Driver::SQLite => sprintf(
                 '%s %s(%s)',
                 $this->syntax->getCommand('pragma', 1),
                 'index_list',

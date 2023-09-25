@@ -16,11 +16,13 @@ use Effectra\SqlQuery\Validation\DataTypeSizeValidation;
  *
  * Represents a query builder for generating SQL column-related statements.
  *
- * @package Effectra\SqlQuery\Build
  */
 class ColumnQueryBuilder extends Attribute
 {
 
+    use QueryBuilderTrait;
+
+    private array $check_list = [];
     /**
      * ColumnQueryBuilder constructor.
      *
@@ -29,6 +31,11 @@ class ColumnQueryBuilder extends Attribute
      */
     public function __construct(protected array $attributes, protected Syntax $syntax)
     {
+    }
+
+    public function getCheckList(): array
+    {
+        return $this->check_list;
     }
 
     /**
@@ -73,7 +80,7 @@ class ColumnQueryBuilder extends Attribute
             $type = $this->getAttribute('data_type');
             $values = $this->getAttribute('datatype_values');
 
-            if(!method_exists(DataTypes::class,$type)){
+            if (!method_exists(DataTypes::class, $type)) {
                 throw new \Exception("data type not exists", 1);
             }
 
@@ -116,12 +123,10 @@ class ColumnQueryBuilder extends Attribute
             $result[] = $this->autoIncrement();
         }
 
+        $result[] = $this->key();
+
         if ($this->constraintsHas('unsigned')) {
             $result[] = $this->unsigned();
-        }
-
-        if ($this->constraintsHas('unique')) {
-            $result[] = $this->unique();
         }
 
         if ($this->hasAttribute('collation_name')) {
@@ -136,14 +141,11 @@ class ColumnQueryBuilder extends Attribute
             $result[] = $this->visible();
         }
 
-        if ($this->hasAttribute('check')) {
-            $result[] = $this->check();
-        }
-
+        
         return join(' ', $result);
     }
 
-     /**
+    /**
      * Check if the column is nullable or not.
      *
      * @return string The "NOT NULL" constraint if the column is not nullable, or the "NULL" constraint if nullable.
@@ -166,10 +168,35 @@ class ColumnQueryBuilder extends Attribute
      */
     public function autoIncrement()
     {
-        return $this->syntax->getKey('auto_increment', 2);
+        return (string) match($this->syntax->getDriver()){
+            Driver::MySQL => $this->syntax->getKey('auto_increment', 2) ,
+            Driver::PostgreSQL => $this->syntax->getKey('auto_increment', 2) ,
+            Driver::SQLite => $this->syntax->getKey('auto_increment', 2),
+        };
+        
     }
 
-     /**
+    /**
+     * Get the "KEY" constraint for the column.
+     *
+     * @return string The "KEY" constraint.
+     */
+    public function key()
+    {
+        $key_query = [];
+
+        if ($this->constraintsHas('primary_key')) {
+            $key_query[] =  $this->syntax->getKey('primary', 2);
+        }
+
+        if ($this->constraintsHas('unique_key')) {
+            $key_query[] = $this->syntax->getKey('unique', 2);
+        }
+
+        return join(' ', $key_query);
+    }
+
+    /**
      * Get the "UNSIGNED" constraint for the column.
      *
      * @return string The "UNSIGNED" constraint.
@@ -179,7 +206,7 @@ class ColumnQueryBuilder extends Attribute
         return $this->syntax->getCommand('unsigned', 2);
     }
 
-     /**
+    /**
      * Get the collation name for the column, if specified.
      *
      * @return string The collation name for the column, including character set and collate statement.
@@ -202,17 +229,7 @@ class ColumnQueryBuilder extends Attribute
         return '';
     }
 
-     /**
-     * Get the "UNIQUE" constraint for the column.
-     *
-     * @return string The "UNIQUE" constraint.
-     */
-    public function unique()
-    {
-        return $this->syntax->getKey('unique', 2);
-    }
-
-     /**
+    /**
      * Get the default value constraint for the column.
      *
      * @return string The default value constraint.
@@ -224,7 +241,7 @@ class ColumnQueryBuilder extends Attribute
         return $this->syntax->getCommand('default', 1) . $default_value;
     }
 
-     /**
+    /**
      * Get the visibility constraint for the column.
      *
      * @return string The visibility constraint, either "VISIBLE" or "INVISIBLE".
@@ -242,43 +259,15 @@ class ColumnQueryBuilder extends Attribute
      */
     public function check(): string
     {
-        if($this->syntax->getDriver() === Driver::SQLite){
-            return '';
-        }
-        $exprs = $this->getAttribute('check') ;
-        if(! $exprs){
-            return '';
-        }
-
-        $result = '';
-        $exprs_result = [];
-
-        if(is_array($exprs)){
-            foreach ($exprs as $expr) {
-                if(empty($expr)){
-                    throw new \Exception("Error Processing Query, check expression is empty");
-                }
-                if($expr === 'json'){
-                    $expr = "json_valid({$this->columnName()})";
-                }
-                $exprs_result[] = $expr;
-            }
-        }
-
+        
+        $exprs = $this->getAttribute('check');
         $check_sort =  $this->getAttribute('check_sort') ?? [];
-        array_shift($check_sort);
 
-        $sortedSyntax = array_map(fn ($op) => $this->syntax->getCommand($op, 1),$check_sort);
-    
-        foreach ($exprs_result as $key => $condition) {
-            if ($key > 0 && $condition !== null) {
-                $result .=  $sortedSyntax[$key - 1] ?? $this->syntax->getCommand('and', 1);
-            }
-            $result .= $condition;
-        }
+        $result= $this->checkQuery($this->columnName(),$exprs,$check_sort);
 
-        return $this->syntax->getCommand('check', 1) . sprintf('(%s)',
-        $result
+        return $this->syntax->getCommand('check',2) . sprintf(
+            '(%s)',
+            $result
         );
     }
 
@@ -334,17 +323,18 @@ class ColumnQueryBuilder extends Attribute
     public function build(): string
     {
         return sprintf(
-            '%s %s%s %s %s %s',
+            '%s %s%s %s %s %s %s',
             $this->columnName(),
             $this->set(),
             $this->dataType(),
             $this->size(),
             $this->nullable(),
-            $this->constraints()
+            $this->constraints(),
+            $this->check()
         );
     }
 
-     /**
+    /**
      * Convert the query builder to its string representation.
      *
      * @return string The string representation of the query builder.

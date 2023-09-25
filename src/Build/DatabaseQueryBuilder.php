@@ -7,7 +7,7 @@ namespace Effectra\SqlQuery\Build;
 use Effectra\SqlQuery\Attribute;
 use Effectra\SqlQuery\Driver;
 use Effectra\SqlQuery\Operations\Alter;
-use Effectra\SqlQuery\Operations\Select;
+use Effectra\SqlQuery\Operations\Info;
 use Effectra\SqlQuery\Syntax;
 
 /**
@@ -15,7 +15,6 @@ use Effectra\SqlQuery\Syntax;
  *
  * Represents a query builder for generating SQL database-related statements (e.g., CREATE DATABASE, DROP DATABASE, etc.).
  *
- * @package Effectra\SqlQuery\Build
  */
 class DatabaseQueryBuilder extends Attribute
 {
@@ -37,7 +36,56 @@ class DatabaseQueryBuilder extends Attribute
      */
     public function create(): string
     {
-        return $this->syntax->getCommand('createDatabase', 1) . $this->getAttribute('db_name');
+
+        $query = $this->syntax->getCommand('createDatabase', 1) . $this->getAttribute('db_name');
+
+        $options = $this->getAttribute('options') ?? [];
+
+
+        if($this->syntax->getDriver() === Driver::MySQL){
+
+            if(isset($options['character'])){
+                $query .=  $this->syntax->getCommand('character', 1) .  $this->syntax->getCommand('set', 1). $options['character'];
+            }
+            if(isset($options['collate'])){
+                $query .=  $this->syntax->getCommand('collate', 1) . $options['collate'];
+            }
+        }
+
+        if($this->syntax->getDriver() === Driver::MySQL){
+
+            if(isset($options['encoding'])){
+                $query .=  $this->syntax->getCommand('encoding', 1) .  $this->syntax->getOperator('equal', 1). $options['encoding'];
+            }
+            if(isset($options['lc_collate'])){
+                $query .=  $this->syntax->getCommand('lc_collate', 1) .  $this->syntax->getOperator('equal', 1). $options['lc_collate'];
+            }
+            if(isset($options['lc_ctype'])){
+                $query .=  $this->syntax->getCommand('lc_ctype', 1) .  $this->syntax->getOperator('equal', 1). $options['lc_ctype'];
+            }
+            if(isset($options['owner'])){
+                $query .=  $this->syntax->getCommand('owner', 1) .  $this->syntax->getOperator('equal', 1). $options['owner'];
+            }
+            if(isset($options['template'])){
+                $query .=  $this->syntax->getCommand('template', 1) .  $this->syntax->getOperator('equal', 1). $options['template'];
+            }
+            if(isset($options['connection_limit'])){
+                $query .=  $this->syntax->getCommand('connection_limit', 1) .  $this->syntax->getOperator('equal', 1). $options['connection_limit'];
+            }
+          
+        }
+
+
+        $query = (string) match($this->syntax->getDriver()){
+            Driver::MySQL => $query,
+            Driver::PostgreSQL =>  $query,
+            Driver::SQLite => '',
+        };
+
+        if(empty($query)){
+            throw new \Exception("Error Processing Query, driver '{$this->syntax->getDriver()}' doesn't has statement for create database");
+        }
+        return $query;
     }
 
     /**
@@ -47,7 +95,16 @@ class DatabaseQueryBuilder extends Attribute
      */
     public function drop(): string
     {
-        return $this->syntax->getCommand('dropDatabase', 1) . $this->getAttribute('db_name');
+        $query = (string) match($this->syntax->getDriver()){
+            Driver::MySQL => $this->syntax->getCommand('dropDatabase', 1) . $this->getAttribute('db_name'),
+            Driver::PostgreSQL => '',
+            Driver::SQLite => '',
+        };
+
+        if(empty($query)){
+            throw new \Exception("Error Processing Query, driver '{$this->syntax->getDriver()}' doesn't has statement for drop database");
+        }
+        return $query;
     }
 
     /**
@@ -58,11 +115,16 @@ class DatabaseQueryBuilder extends Attribute
      */
     public function rename(): string
     {
-        $driver = $this->syntax->getDriver();
-        if ($driver !== Driver::PostgreSQL) {
-            throw new \Exception("Error Processing Query, driver '$driver' doesn't has statement for rename database");
+        $query = (string) match($this->syntax->getDriver()){
+            Driver::MySQL => (new Alter())->database($this->getAttribute('db_name'))->renameDatabase($this->getAttribute('rename')),
+            Driver::PostgreSQL => '',
+            Driver::SQLite => '',
+        };
+
+        if(empty($query)){
+            throw new \Exception("Error Processing Query, driver '{$this->syntax->getDriver()}' doesn't has statement for rename database");
         }
-        return (string) (new Alter())->database($this->getAttribute('db_name'))->renameDB($this->getAttribute('rename'));
+        return $query;
     }
 
     /**
@@ -73,17 +135,7 @@ class DatabaseQueryBuilder extends Attribute
      */
     public function getTables(): string
     {
-        $driver = $this->syntax->getDriver();
-        if ($driver === Driver::MySQL) {
-            return $this->syntax->getCommand('show', 1) .$this->syntax->getCommand('tables', 1) ;
-        }
-        if ($driver === Driver::PostgreSQL) {
-            return (string) (new Select('table_name'))->columns(['table_schema'])->from('information_schema.tables')->where(['table_schema '=>'public']);
-        }
-        if ($driver === Driver::SQLite) {
-            return (string) (new Select(''))->columns(['name'])->from('sqlite_master ')->where(['type '=>'table']);
-        }
-        throw new \Exception("Error Processing Query,driver not exists", 1);
+       return (string) (new Info())->listTables();
     }
 
     /**
@@ -110,6 +162,7 @@ class DatabaseQueryBuilder extends Attribute
             return $this->getTables();
         }
 
+        throw new \Exception("Error Processing Query,there is no database statement");
     }
 
     /**

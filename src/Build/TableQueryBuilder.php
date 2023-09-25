@@ -9,7 +9,6 @@ use Effectra\SqlQuery\Destruct\ColumnDestruct;
 use Effectra\SqlQuery\Driver;
 use Effectra\SqlQuery\Operations\Alter;
 use Effectra\SqlQuery\Operations\Drop;
-use Effectra\SqlQuery\Operations\Select;
 use Effectra\SqlQuery\Syntax;
 
 /**
@@ -17,19 +16,22 @@ use Effectra\SqlQuery\Syntax;
  *
  * Represents a query builder for creating, updating, and retrieving information about database tables.
  *
- * @package Effectra\SqlQuery\Build
  */
 class TableQueryBuilder extends Attribute
 {
+    use QueryBuilderTrait;
 
+    protected array $check_attrs = [];
     /**
      * Constructor for the TableQueryBuilder.
      *
      * @param array $attributes An array of attributes used in the query.
      * @param Syntax $syntax The syntax handler for generating SQL syntax.
      */
-    public function __construct(protected array $attributes, protected Syntax $syntax)
-    {
+    public function __construct(
+        protected array $attributes,
+        protected Syntax $syntax
+    ) {
         $cols = $this->getAttribute('cols');
         if ($cols) {
             $this->setAttribute('cols', $this->removeDuplicatesByKey($cols, 'column_name'));
@@ -95,17 +97,56 @@ class TableQueryBuilder extends Attribute
     }
 
     /**
+     * get the attributes of columns.
+     * @return array column attributes
+     */
+    public function columns(): array
+    {
+        $cols = [];
+        foreach ($this->getAttribute('cols') as $col) {
+            $col_attrs = new ColumnDestruct($col);
+
+            $cols[] = $col_attrs->getAttributes();
+        }
+        return $cols;
+    }
+
+    /**
      * Convert the object to its string representation (generates the SQL query).
      *
      * @return string The generated SQL query.
      */
-    public function columns(): string
+    public function columnQueryBuilder(): string
     {
         $cols = [];
-        foreach ($this->getAttribute('cols') as $col) {
-            $cols[] = (string) new ColumnDestruct($col);
+        foreach ($this->columns() as $col) {
+            $columnQueryBuilder = new ColumnQueryBuilder($col, $this->syntax);
+
+            $check = isset($col['check']) && in_array('json', $col['check']) ? $columnQueryBuilder->check() : '';
+
+            $cols[] = sprintf(
+                '%s %s%s %s %s %s',
+                $columnQueryBuilder->columnName(),
+                $columnQueryBuilder->dataType(),
+                $columnQueryBuilder->size(),
+                $columnQueryBuilder->nullable(),
+                $columnQueryBuilder->constraints(),
+                $check
+            );
         }
         return join(",\n", $cols);
+    }
+
+    public function check(): string
+    {
+        $cols = [];
+        foreach ($this->columns() as $column) {
+            if (isset($column['check']) && !in_array('json', $column['check'])) {
+                $cols[] = $this->checkQuery($column['column_name'], $column['check'], $column['check_sort']);
+            }
+        }
+
+        return empty($cols) ? '' : sprintf('%s (%s)', $this->syntax->getCommand('check', 1), join($this->syntax->getCommand('and', 1), $cols));
     }
 
     /**
@@ -164,7 +205,7 @@ class TableQueryBuilder extends Attribute
                 if ($this->getAttribute('drop_key') === 'index') {
                     $drop->dropIndex();
                 }
-                
+
                 if ($this->getAttribute('drop_key') === 'key') {
                     $drop->dropKey();
                 }
@@ -181,7 +222,7 @@ class TableQueryBuilder extends Attribute
      */
     public function engine(): string
     {
-        if($this->syntax->getDriver() === Driver::SQLite){
+        if ($this->syntax->getDriver() === Driver::SQLite) {
             return '';
         }
         return $this->hasAttribute('engine') ? 'ENGINE=' . $this->getAttribute('engine') : '';
@@ -192,9 +233,9 @@ class TableQueryBuilder extends Attribute
      *
      * @return string The SQL specification for the table character set.
      */
-    public function charset(): string
+    public function tableCharset(): string
     {
-        if($this->syntax->getDriver() === Driver::SQLite){
+        if ($this->syntax->getDriver() === Driver::SQLite) {
             return '';
         }
         return $this->hasAttribute('charset') ? 'DEFAULT CHARSET=' . $this->getAttribute('charset') : '';
@@ -207,14 +248,17 @@ class TableQueryBuilder extends Attribute
      */
     public function buildCreateTable(): string
     {
-        return sprintf(
-            "%s %s ( %s ) %s %s",
+        $query = sprintf(
+            "%s %s ( %s ) %s %s %s",
             $this->start(),
             $this->tableName(),
-            $this->columns(),
+            $this->columnQueryBuilder(),
+            $this->check(),
             $this->engine(),
-            $this->charset(),
+            $this->tableCharset(),
         );
+
+        return $query;
     }
 
     /**
@@ -243,7 +287,7 @@ class TableQueryBuilder extends Attribute
         if ($this->getOperation() === 'update_table') {
             return $this->buildModifyTable();
         }
-        
+
         throw new \Exception("Error Processing query attribute operation");
     }
 
