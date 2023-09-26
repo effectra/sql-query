@@ -95,68 +95,76 @@ class Drop extends Attribute
     /**
      * Set the target to drop a database.
      */
-    public function dropDatabase(): void
+    public function dropDatabase(): self
     {
         $this->setAttribute('target', 'database');
+        return $this;
     }
 
     /**
      * Set the target to drop a table.
      */
-    public function dropTable(): void
+    public function dropTable(): self
     {
         $this->setAttribute('target', 'table');
+        return $this;
     }
 
     /**
      * Set the target to drop a column.
      */
-    public function dropColumn(): void
+    public function dropColumn(): self
     {
         $this->setAttribute('target', 'column');
+        return $this;
     }
 
     /**
      * Set the target to drop a key.
      */
-    public function dropKey(): void
+    public function dropKey(): self
     {
         $this->setAttribute('target', 'key');
+        return $this;
     }
 
     /**
      * Set the target to drop a primary key.
      */
-    public function dropPrimaryKey(): void
+    public function dropPrimaryKey(): self
     {
         $this->dropKey();
         $this->setAttribute('type', 'primary_key');
+        return $this;
     }
 
     /**
      * Set the target to drop a foreign key.
      */
-    public function dropForeignKey(): void
+    public function dropForeignKey(): self
     {
         $this->dropKey();
         $this->setAttribute('type', 'foreign_key');
+        return $this;
     }
 
     /**
      * Set the target to drop a unique key.
      */
-    public function dropUniqueKey(): void
+    public function dropUniqueKey(): self
     {
         $this->dropIndex();
         $this->setAttribute('type', 'unique_key');
+        return $this;
     }
 
     /**
      * Set the target to drop an index.
      */
-    public function dropIndex(): void
+    public function dropIndex(): self
     {
         $this->setAttribute('target', 'index');
+        return $this;
     }
 
     /**
