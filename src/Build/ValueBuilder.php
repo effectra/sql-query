@@ -283,10 +283,13 @@ class ValueBuilder
         if(strpos($value ,':')){
             return $value;
         }
-        if(in_array($value,  array_values((new Syntax())->dateFunctions()))){
-            return "'" . $value . "'";
+        if($value === '?'){
+            return $value;
         }
-        return  $value ;
+        if(in_array($value,  array_values((new Syntax())->dateFunctions()))){
+            return $value;
+        }
+        return sprintf("'%s'",$value) ;
     }
 
     /**
