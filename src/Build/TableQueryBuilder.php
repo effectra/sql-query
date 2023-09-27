@@ -249,8 +249,9 @@ class TableQueryBuilder extends Attribute
     public function buildCreateTable(): string
     {
         $query = sprintf(
-            "%s %s ( %s %s )  %s %s",
+            "%s %s %s ( %s %s )  %s %s",
             $this->start(),
+            $this->exists(),
             $this->tableName(),
             $this->columnQueryBuilder(),
             $this->check(),

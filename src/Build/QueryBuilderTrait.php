@@ -306,4 +306,17 @@ trait QueryBuilderTrait
 
         return $result;
     }
+
+     /**
+     * build exists query
+     *
+     * @return string
+     */
+    public function exists():string
+    {
+        if(!$this->hasAttribute('exists')){
+            return '';
+        }
+        return $this->getAttribute('exists') ?  $this->syntax->getCommand('ifExists') :  $this->syntax->getCommand('ifNotExists'); 
+    }
 }

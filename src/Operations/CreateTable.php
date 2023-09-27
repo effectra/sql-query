@@ -61,19 +61,6 @@ class CreateTable extends Attribute
     }
 
     /**
-     * Specify whether the table should only be created if it does not already exist.
-     *
-     * @param bool $act Whether to create the table only if it doesn't exist.
-     *
-     * @return self
-     */
-    public function exists(bool $act = false): self
-    {
-        $this->setAttribute('exists', $act);
-        return $this;
-    }
-
-    /**
      * Get the table constructs based on the provided table definition callback or configuration.
      *
      * @return array

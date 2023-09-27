@@ -312,5 +312,36 @@ trait OperationsTrait
         return $this;
     }
 
-    
+    /**
+     * Specify whether the table should only be created if it does not already exist.
+     *
+     * @param bool $act Whether to create the table only if it doesn't exist.
+     *
+     * @return self
+     */
+    public function exists(bool $act = false): self
+    {
+        $this->setAttribute('exists', $act);
+        return $this;
+    }
+
+    /**
+     * Specify whether the table should only be created if exist.
+     *
+     * @return self
+     */
+    public function ifExists(): self
+    {
+        return $this->exists(true);
+    }
+
+    /**
+     * Specify whether the table should only be created if it does not already exist.
+     *
+     * @return self
+     */
+    public function ifNotExists(): self
+    {
+        return $this->exists(false);
+    }
 }
