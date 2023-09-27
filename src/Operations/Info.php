@@ -62,6 +62,13 @@ class Info extends Attribute
         return $this;
     }
 
+    public function tableExists(string $table_name): self
+    {
+        $this->setAttribute('table_name', $table_name);
+        $this->setAttribute('info', 'table_exists');
+        return $this;
+    }
+
     /**
      * Specify that the INFO query should retrieve the schema of a table.
      *

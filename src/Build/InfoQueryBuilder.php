@@ -33,13 +33,11 @@ class InfoQueryBuilder extends Attribute
      */
     public function dbName(): string
     {
-      return (string) match ($this->syntax->getDriver()) {
+        return (string) match ($this->syntax->getDriver()) {
             Driver::MySQL =>  $this->syntax->getCommand('select', 1) . $this->syntax->getCommand('database') . "()",
             Driver::PostgreSQL => $this->syntax->getCommand('select', 1) . 'current_database()',
             Driver::SQLite => $this->syntax->getCommand('pragma', 1) . 'database_list',
         };
-
-        
     }
 
     /**
@@ -55,7 +53,7 @@ class InfoQueryBuilder extends Attribute
             Driver::SQLite => '',
         };
 
-        if(empty($query)){
+        if (empty($query)) {
             throw new \Exception("Error Processing Query, driver '{$this->syntax->getDriver()}' doesn't has statement for list database tables");
         }
         return $query;
@@ -75,7 +73,7 @@ class InfoQueryBuilder extends Attribute
         };
     }
 
-     /**
+    /**
      * Get the SQL query to list columns of a table.
      *
      * @return string The SQL query to list columns.
@@ -94,7 +92,27 @@ class InfoQueryBuilder extends Attribute
         };
     }
 
-     /**
+    public function tableExists(): string
+    {
+        return (string) match ($this->syntax->getDriver()) {
+            Driver::MySQL => sprintf(
+                "%s %s %s '%s'",
+                $this->syntax->getCommand('show', 1),
+                $this->syntax->getCommand('tables', 1),
+                $this->syntax->getCommand('like', 1),
+                $this->getAttribute('table_name')
+            ),
+            Driver::PostgreSQL => sprintf(
+                '%s %s (%s)',
+                $this->syntax->getCommand('select', 1),
+                $this->syntax->getCommand('exists', 1),
+                (new Select('information_schema.tables'))->columns([1])->where(['table_name' => $this->getAttribute('table_name')]),
+            ),
+            Driver::SQLite => (new Select('sqlite_master'))->columns(['name'])->where(['type' => 'table', 'name' => $this->getAttribute('table_name')])
+        };
+    }
+
+    /**
      * Get the SQL query to retrieve the schema of a table.
      *
      * @return string The SQL query to retrieve table schema.
@@ -141,6 +159,7 @@ class InfoQueryBuilder extends Attribute
             'list_cols' => $this->listCols(),
             'table_schema' => $this->tableSchema(),
             'table_indexes' => $this->tableIndexes(),
+            'table_exists' => $this->tableExists()
         };
     }
 
