@@ -210,14 +210,14 @@ class Column extends Attribute
      * @param mixed $expr The expression for the CHECK constraint.
      * @return self
      */
-    public function check($expr,string $sort = 'and'): self
+    public function check($expr, string $sort = 'and'): self
     {
-        $this->addToAttribute('check' , $expr);
-        $this->addToAttribute('check_sort' , $sort);
+        $this->addToAttribute('check', $expr);
+        $this->addToAttribute('check_sort', $sort);
         return $this;
     }
 
-     /**
+    /**
      * Add a CHECK constraint with next CHECK constraint 'OR' to the column.
      *
      * @param mixed $expr The expression for the CHECK constraint.
@@ -225,7 +225,7 @@ class Column extends Attribute
      */
     public function checkOr($expr): self
     {
-        return $this->check($expr,'or');
+        return $this->check($expr, 'or');
     }
 
     /**
@@ -378,6 +378,12 @@ class Column extends Attribute
     public function storageMemory(): self
     {
         return $this->storage('memory');
+    }
+
+    public function afterColumn(string $column): self
+    {
+        $this->setAttribute('after_column', $column);
+        return $this;
     }
 
     /**

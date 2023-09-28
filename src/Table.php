@@ -187,6 +187,20 @@ class Table extends Attribute
     }
 
     /**
+     * Set the column after this column.
+     *
+     * @param mixed $column_name you want your column be after.
+     * @return self
+     */
+    public function after(string $column_name): self
+    {
+        $col = new ColumnDestruct($this->getLastColumn());
+        $col->afterColumn($column_name);
+        $this->modifyColumn($col);
+        return $this;
+    }
+
+    /**
      * Get the SQL query for the table modification.
      *
      * @return string The SQL query.

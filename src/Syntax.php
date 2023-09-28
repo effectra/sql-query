@@ -92,6 +92,7 @@ class Syntax
         return [
             "abs" => "ABS",
             "add" => "ADD",
+            "after" => "AFTER",
             "all" => "ALL",
             "alter" => "ALTER",
             "alterDatabase" => "ALTER DATABASE",

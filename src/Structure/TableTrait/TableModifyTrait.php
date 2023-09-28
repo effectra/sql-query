@@ -56,4 +56,5 @@ trait TableModifyTrait
         $this->setAttribute('add_column',$col->getAttributes());
         return $this;
     }
+
 }

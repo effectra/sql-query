@@ -141,7 +141,7 @@ class ColumnQueryBuilder extends Attribute
             $result[] = $this->visible();
         }
 
-        
+
         return join(' ', $result);
     }
 
@@ -168,12 +168,11 @@ class ColumnQueryBuilder extends Attribute
      */
     public function autoIncrement()
     {
-        return (string) match($this->syntax->getDriver()){
-            Driver::MySQL => $this->syntax->getKey('auto_increment', 2) ,
-            Driver::PostgreSQL => $this->syntax->getKey('auto_increment', 2) ,
+        return (string) match ($this->syntax->getDriver()) {
+            Driver::MySQL => $this->syntax->getKey('auto_increment', 2),
+            Driver::PostgreSQL => $this->syntax->getKey('auto_increment', 2),
             Driver::SQLite => $this->syntax->getKey('auto_increment', 2),
         };
-        
     }
 
     /**
@@ -259,13 +258,15 @@ class ColumnQueryBuilder extends Attribute
      */
     public function check(): string
     {
-        
+        if (!$this->hasAttribute('check')) {
+            return '';
+        }
         $exprs = $this->getAttribute('check');
         $check_sort =  $this->getAttribute('check_sort') ?? [];
 
-        $result= $this->checkQuery($this->columnName(),$exprs,$check_sort);
+        $result = $this->checkQuery($this->columnName(), $exprs, $check_sort);
 
-        return $this->syntax->getCommand('check',2) . sprintf(
+        return $this->syntax->getCommand('check', 2) . sprintf(
             '(%s)',
             $result
         );
@@ -315,6 +316,17 @@ class ColumnQueryBuilder extends Attribute
         return null;
     }
 
+    public function afterColumn(): string
+    {
+        if ($this->syntax->getDriver() === Driver::SQLite) {
+            return '';
+        }
+        if (!$this->hasAttribute('after_column')) {
+            return '';
+        }
+        return  $this->syntax->getCommand('after', 1) . $this->getAttribute('after_column');
+    }
+
     /**
      * Build the SQL column-related query.
      *
@@ -323,14 +335,15 @@ class ColumnQueryBuilder extends Attribute
     public function build(): string
     {
         return sprintf(
-            '%s %s%s %s %s %s %s',
+            '%s %s%s %s %s %s %s %s',
             $this->columnName(),
             $this->set(),
             $this->dataType(),
             $this->size(),
             $this->nullable(),
             $this->constraints(),
-            $this->check()
+            $this->check(),
+            $this->afterColumn()
         );
     }
 
