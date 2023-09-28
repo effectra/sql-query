@@ -25,7 +25,7 @@ trait TableStringTrait
      */
     public function string(string $column_name): self
     {
-        return $this->longText($column_name);
+        return $this->varchar($column_name)->size(255);
     }
 
     /**
