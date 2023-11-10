@@ -200,7 +200,8 @@ trait QueryBuilderTrait
 
     public function whereLike($attribute): string|null
     {
-        return $attribute['col'] . $this->syntax->getCommand('like', 1) . (new ValueBuilder(["%" . $attribute['like'] . "%"]))->getAsOneLine();
+        $attribute = ["%" . $attribute['like'] . "%"];
+        return $attribute['col'] . $this->syntax->getCommand('like', 1) . (new ValueBuilder($attribute))->getAsOneLine();
     }
 
     public function whereFromColumnTable($attribute)
