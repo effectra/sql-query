@@ -280,16 +280,18 @@ class ValueBuilder
 
     public function buildString($value)
     {
-        if(strpos($value ,':')){
+        if (strpos($value, ':')) {
             return $value;
         }
-        if($value === '?'){
+        if ($value === '?') {
             return $value;
         }
-        if(in_array($value,  array_values((new Syntax())->dateFunctions()))){
+        if (in_array($value,  array_values((new Syntax())->dateFunctions()))) {
             return $value;
         }
-        return sprintf("'%s'",$value) ;
+
+        $value = trim($value, "'");
+        return sprintf("'%s'", $value);
     }
 
     /**
