@@ -280,7 +280,7 @@ class ValueBuilder
 
     public function buildString($value)
     {
-        if (strpos($value, ':')) {
+        if (strpos($value, ':') === 0) {
             return $value;
         }
         if ($value === '?') {
